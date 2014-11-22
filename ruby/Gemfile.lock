@@ -1,6 +1,8 @@
 GEM
   specs:
-    test-unit (2.5.5)
+    power_assert (0.2.2)
+    test-unit (3.0.7)
+      power_assert
 
 PLATFORMS
   ruby
