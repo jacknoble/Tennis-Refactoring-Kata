@@ -1,58 +1,51 @@
 
 class TennisGame1
+  attr_accessor :points
 
-  def initialize(player1Name, player2Name)
-    @player1Name = player1Name
-    @player2Name = player2Name
-    @p1points = 0
-    @p2points = 0
+  TENNIS_SCORES = {
+    0 => "Love",
+    1 => "Fifteen",
+    2 => "Thirty",
+    3 => "Forty"
+  }.freeze
+
+  def initialize(player1, player2)
+    self.points = { player1 => 0, player2 => 0}
   end
-        
-  def won_point(playerName)
-    if playerName == @player1Name
-      @p1points += 1
-    else
-      @p2points += 1
-    end
+
+  def scores
+    points.values
   end
-  
+
+  def won_point(player_name)
+    points[player_name] += 1
+  end
+
+  def points_difference
+    (scores[0] - scores[1]).abs
+  end
+
   def score
-    result = ""
-    tempScore=0
-    if (@p1points==@p2points)
-      result = {
-          0 => "Love-All",
-          1 => "Fifteen-All",
-          2 => "Thirty-All",
-      }.fetch(@p1points, "Deuce")
-    elsif (@p1points>=4 or @p2points>=4)
-      minusResult = @p1points-@p2points
-      if (minusResult==1)
-        result ="Advantage " + @player1Name
-      elsif (minusResult ==-1)
-        result ="Advantage " + @player2Name
-      elsif (minusResult>=2)
-        result = "Win for " + @player1Name
-      else
-        result ="Win for " + @player2Name
-      end
+    if points_difference == 0
+      tie
+    elsif scores.any? { |score| score >= 4}
+      score_after_forty
     else
-      (1...3).each do |i|
-        if (i==1)
-          tempScore = @p1points
-        else
-          result+="-"
-          tempScore = @p2points
-        end
-        result += {
-            0 => "Love",
-            1 => "Fifteen",
-            2 => "Thirty",
-            3 => "Forty",
-        }[tempScore]
-      end
+      TENNIS_SCORES[scores.first] + "-" + TENNIS_SCORES[scores.last]
     end
-    result
+  end
+
+  def tie
+    scores.first > 2 ? "Deuce" : TENNIS_SCORES[scores.first] + "-All"
+  end
+
+  def score_after_forty
+    leader = points.key(scores.max)
+    if points_difference == 1
+      "Advantage " + leader
+    else
+      "Win for " + leader
+    end
   end
 end
 
