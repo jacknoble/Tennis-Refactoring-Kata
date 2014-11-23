@@ -50,6 +50,15 @@ class TennisGame1
 end
 
 class TennisGame2
+
+  TENNIS_SCORES = {
+    0 => "Love",
+    1 => "Fifteen",
+    2 => "Thirty",
+    3 => "Forty"
+  }.freeze
+
+
   def initialize(player1_name, player2_name)
     @player1_name = player1_name
     @player2_name = player2_name
@@ -59,154 +68,70 @@ class TennisGame2
 
   def won_point(playerName)
     if playerName == @player1_name
-      p1Score()
+      @p1points += 1
     else
-      p2Score()
+      @p2points += 1
     end
   end
 
   def score
-    result = ""
-    if (@p1points == @p2points and @p1points < 3)
-      if (@p1points==0)
-        result = "Love"
-      end
-      if (@p1points==1)
-        result = "Fifteen"
-      end
-      if (@p1points==2)
-        result = "Thirty"
-      end
-      result += "-All"
+    return  "Deuce" if (@p1points==@p2points && @p1points > 2)
+    return TENNIS_SCORES[@p1points] + "-All" if @p1points == @p2points
+    if @p2points >= 3 && @p1points >= 3 && (@p2points - @p1points).abs == 1
+      return "Advantage " + @player1_name if @p1points > @p2points
+      return "Advantage " + @player2_name
     end
-    if (@p1points==@p2points and @p1points>2)
-        result = "Deuce"
+    if @p1points >= 4 || @p2points >= 4
+      return "Win for " + @player1_name if @p1points > @p2points
+      return "Win for " + @player2_name
     end
 
-    p1res = ""
-    p2res = ""
-    if (@p1points > 0 and @p2points==0)
-      if (@p1points==1)
-        p1res = "Fifteen"
-      end
-      if (@p1points==2)
-        p1res = "Thirty"
-      end
-      if (@p1points==3)
-        p1res = "Forty"
-      end
-      p2res = "Love"
-      result = p1res + "-" + p2res
-    end
-    if (@p2points > 0 and @p1points==0)
-      if (@p2points==1)
-        p2res = "Fifteen"
-      end
-      if (@p2points==2)
-        p2res = "Thirty"
-      end
-      if (@p2points==3)
-        p2res = "Forty"
-      end
-
-      p1res = "Love"
-      result = p1res + "-" + p2res
-    end
-
-    if (@p1points>@p2points and @p1points < 4)
-      if (@p1points==2)
-        p1res="Thirty"
-      end
-      if (@p1points==3)
-        p1res="Forty"
-      end
-      if (@p2points==1)
-        p2res="Fifteen"
-      end
-      if (@p2points==2)
-        p2res="Thirty"
-      end
-      result = p1res + "-" + p2res
-    end
-    if (@p2points>@p1points and @p2points < 4)
-      if (@p2points==2)
-        p2res="Thirty"
-      end
-      if (@p2points==3)
-        p2res="Forty"
-      end
-      if (@p1points==1)
-        p1res="Fifteen"
-      end
-      if (@p1points==2)
-        p1res="Thirty"
-      end
-      result = p1res + "-" + p2res
-    end
-    if (@p1points > @p2points and @p2points >= 3)
-      result = "Advantage " + @player1_name
-    end
-    if (@p2points > @p1points and @p1points >= 3)
-      result = "Advantage " + @player2_name
-    end
-    if (@p1points>=4 and @p2points>=0 and (@p1points-@p2points)>=2)
-      result = "Win for " + @player1_name
-    end
-    if (@p2points>=4 and @p1points>=0 and (@p2points-@p1points)>=2)
-      result = "Win for " + @player2_name
-    end
-    result
-  end
-
-  def setp1Score(number)
-    (0..number).each do |i|
-        p1Score()
-    end
-  end
-
-  def setp2Score(number)
-    (0..number).each do |i|
-      p2Score()
-    end
-  end
-
-  def p1Score
-    @p1points +=1
-  end
-
-  def p2Score
-    @p2points +=1
+    "#{TENNIS_SCORES[@p1points]}-#{TENNIS_SCORES[@p2points]}"
   end
 end
 
-class TennisGame3
-  def initialize(player1_name, player2_name)
-    @p1N = player1_name
-    @p2N = player2_name
-    @p1 = 0
-    @p2 = 0
+class TennisGame3 #This one is terrible
+  TENNIS_SCORES = ["Love", "Fifteen", "Thirty", "Forty"]
+  attr_accessor :player_score
+
+  def initialize(player1, player2)
+    self.player_score = { player1 => 0, player2 => 0}
   end
 
-  def won_point(n)
-    if n == @p1N
-        @p1 += 1
-    else
-        @p2 += 1
-    end
+  def won_point(player_name)
+    player_score[player_name] += 1
   end
 
   def score
-    if (@p1 < 4 and @p2 < 4) and (@p1 + @p2 < 6)
-      p = ["Love", "Fifteen", "Thirty", "Forty"]
-      s = p[@p1]
-      @p1 == @p2 ? s + "-All" : s + "-" + p[@p2]
+    if point_difference == 0
+      tie_score
+    elsif points.any? { |score| score >= 4}
+      score_after_forty
     else
-      if (@p1 == @p2)
-        "Deuce"
-      else
-        s = @p1 > @p2 ? @p1N : @p2N
-        (@p1-@p2)*(@p1-@p2) == 1 ? "Advantage " + s : "Win for " + s
-      end
+      TENNIS_SCORES[points.first] + "-" + TENNIS_SCORES[points.last]
+    end
+  end
+
+  private
+
+  def points
+    player_score.values
+  end
+
+  def point_difference
+    points.inject(:-).abs
+  end
+
+  def tie_score
+    points.first > 2 ? "Deuce" : TENNIS_SCORES[points.first] + "-All"
+  end
+
+  def score_after_forty
+    leader = player_score.key(points.max)
+    if point_difference == 1
+      "Advantage " + leader
+    else
+      "Win for " + leader
     end
   end
 end
